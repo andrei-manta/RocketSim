@@ -33,10 +33,10 @@ private:
 	bool default_rocket = true;
 	bool default_solar_system = true;
 
-	void pop_up(std::string s);
-
 public:
 	Backend();
+
+	void pop_up(std::string s);
 
 	int load_rocket_data();
 	int load_planetary_data();
@@ -47,4 +47,6 @@ public:
 	std::string get_solar_system_data();
 
 	std::string get_planetary_computations();
+	std::string get_positions_after_time(std::string time);
+	std::string get_trajectories(std::string planet_1, std::string planet_2);
 };

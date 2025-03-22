@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QFile>
+#include <cmath>
 
 Backend::Backend()
 {
@@ -1388,4 +1389,245 @@ std::string Backend::get_planetary_computations()
 		s += each.get_name() + ": " + std::to_string(static_cast<long double>(acceleration_per_engine * number_of_engines * time * time / 2000)) + " km; ";
 	}
 	return s;
+}
+
+std::string Backend::get_positions_after_time(std::string time)
+{
+	try
+	{
+		std::string s = time;
+
+		if (s.size() == 0)
+		{
+			pop_up("Error! You typed the number of days wrong, retry");
+			return "";
+		}
+
+		bool dot_found = false;
+		int dot_pos = -1;
+		int counter = 0;
+		for (auto each : s)
+		{
+			if (each < '0' || each > '9')
+			{
+				if (dot_found)
+				{
+					pop_up("Error in the number of days you typed!");
+					return "";
+				}
+				else
+				{
+					if (each != '.')
+					{
+						pop_up("Error in the number of days you typed!");
+						return "";
+					}
+					else
+					{
+						if (counter == 0 || counter == s.size() - 1)
+						{
+							pop_up("Error in the number of days you typed!");
+							return "";
+						}
+						else
+						{
+							dot_pos = counter;
+							dot_found = true;
+						}
+					}
+				}
+			}
+			counter += 1;
+		}
+		if (s.at(0) == '0' && dot_pos != 1)
+		{
+			pop_up("Error in the number of days you typed! It starts with a 0 or is just a 0");
+			return "";
+		}
+		if (s.size() >= 8 && !dot_found)
+		{
+			pop_up("The number of days you typed is too large!");
+			return "";
+		}
+
+		long double output = 0;
+		int sum = 0;
+		for (auto each : s)
+		{
+			if (each == '.')
+			{
+				break;
+			}
+			sum *= 10;
+			sum += each - '0';
+		}
+		output = sum;
+
+		if (dot_found)
+		{
+			int aux = 0;
+			QString st = "0.";
+			for (auto each : s)
+			{
+				if (aux > dot_pos)
+				{
+					st += each;
+				}
+				aux += 1;
+			}
+			output += st.toDouble();
+		}
+
+		std::string res = "After " + std::to_string(output) + " days, the Solar System looks like this:\n";
+
+		for (Planet each : planets)
+		{
+			long double degs_per_day = static_cast<long double>(360.0) / each.get_period();
+			long double degs_traveled = fmod((output * degs_per_day), 360.0);
+
+			res += each.get_name() + ": " + std::to_string(degs_traveled) + " degrees; ";
+		}
+
+		return res;
+	}
+	catch (...)
+	{
+		pop_up("Error in computing planet positions! Retry");
+		return "";
+	}
+}
+
+std::string Backend::get_trajectories(std::string planet_1, std::string planet_2)
+{
+	try
+	{
+		std::string p1 = planet_1;
+		std::string p2 = planet_2;
+
+		//validate the planets
+		int p1_counter = -1, p2_counter = -1, counter = 0;
+		for (auto each : planets)
+		{
+			if (each.get_name() == p1)
+			{
+				p1_counter = counter;
+			}
+			else if (each.get_name() == p2)
+			{
+				p2_counter = counter;
+			}
+			counter += 1;
+		}
+		if (p1_counter == -1 || p2_counter == -1)
+		{
+			pop_up("Error! You typed the planets wrong, retry");
+			return "";
+		}
+
+		//do the straight line computations
+		long double p1_escape_vel = sqrt(2 * G * planets.at(p1_counter).get_mass() / (planets.at(p1_counter).get_diameter() * 500));
+		long double p2_escape_vel = sqrt(2 * G * planets.at(p2_counter).get_mass() / (planets.at(p2_counter).get_diameter() * 500));
+		long double max_speed = p1_escape_vel > p2_escape_vel ? p1_escape_vel : p2_escape_vel; // in m/s
+		long double total_acceleration = acceleration_per_engine * number_of_engines; // in m/s^2
+		long double straight_distance = (abs(planets.at(p1_counter).get_orbital_radius() - planets.at(p2_counter).get_orbital_radius()) - planets.at(p1_counter).get_diameter() / 2 - planets.at(p2_counter).get_diameter() / 2) * 1000; //in m
+
+		long double time_of_acceleration = max_speed / total_acceleration;
+		long double distance_of_acceleration = total_acceleration * time_of_acceleration * time_of_acceleration / 2.0;
+		long double cruising_time = (straight_distance - 2.0 * distance_of_acceleration) / max_speed;
+		long double journey_time = cruising_time + 2 * time_of_acceleration;
+
+		std::string ret = "Total stright-line journey time:" + std::to_string(journey_time) + " s, time of acceleration:" + std::to_string(time_of_acceleration) +
+			" s,\ndistance of acceleration:" + std::to_string(distance_of_acceleration) + " m, cruising time:" + std::to_string(cruising_time) + " s";
+
+		pop_up(ret);
+
+		//do the frozen planets computations
+		std::vector<long double> planet_positions; //in degrees
+		for (auto each : planets)
+		{
+			planet_positions.push_back(0.0);
+		}
+		//let 100 years pass
+		counter = 0;
+		for (auto& each : planet_positions)
+		{
+			each += fmod(360.0 / planets.at(counter).get_period() * 365.0 * 100.0, 360.0);
+			counter += 1;
+		}
+		//do step calculations over 10 years and find a minimum
+		int step_limit = 10 * 365; //1 calculation per day
+		int current_step = 0;
+
+		long double start_of_launch_window = 0.0;
+		long double minimum_interplanetary_distance = 900000000000.0;
+		long double current_distance = 0.0;
+
+		std::vector<std::pair<long double, long double>> orthogonal_positions; //x and y orthogonal positions of the planets
+		for (int i = 0; i < 9; ++i)
+		{
+			orthogonal_positions.push_back(std::make_pair(0.0, 0.0));
+		}
+		while (current_step < step_limit)
+		{
+			//progress the system by one step
+			int counter = 0;
+			for (auto& each : planet_positions)
+			{
+				each += 360.0 / planets.at(counter).get_period() * (10 * 365) / step_limit; //add the corresponding degrees
+				each = fmod(each, 360.0); //truncate
+				counter += 1;
+			}
+			//compute optimality
+			//convert polar to orthogonal planet positions
+			counter = 0;
+			while (counter < 9)
+			{
+				orthogonal_positions.at(counter) = std::make_pair(planets.at(counter).get_orbital_radius() * cos(planet_positions.at(counter) * M_PI / 180.0), planets.at(counter).get_orbital_radius() * sin(planet_positions.at(counter) * M_PI / 180.0));
+
+				counter += 1;
+			}
+			//check smashing into planets and compare with current shortest distance
+			current_distance = hypot(abs(orthogonal_positions.at(p1_counter).first - orthogonal_positions.at(p2_counter).first), abs(orthogonal_positions.at(p1_counter).second - orthogonal_positions.at(p2_counter).second));
+			
+			if (current_distance < minimum_interplanetary_distance)
+			{
+				bool smashes = false;
+				int counter = 0;
+				long double distance_center_of_planet_to_line = 0.0;
+				for (auto each : orthogonal_positions)
+				{
+					if (counter != p1_counter && counter != p2_counter)
+					{
+						//compute smashing - formula for distance from point to line
+						distance_center_of_planet_to_line = abs((orthogonal_positions.at(p1_counter).second - orthogonal_positions.at(p2_counter).second) * each.first - (orthogonal_positions.at(p1_counter).first - orthogonal_positions.at(p2_counter).first) * each.second + orthogonal_positions.at(p2_counter).first * orthogonal_positions.at(p1_counter).second - orthogonal_positions.at(p1_counter).first * orthogonal_positions.at(p2_counter).second) / current_distance;
+						if (distance_center_of_planet_to_line <= planets.at(counter).get_diameter() / 2) //no smash detected
+						{
+							smashes = true;
+						}
+					}
+					counter += 1;
+				}
+				if (!smashes)
+				{
+					minimum_interplanetary_distance = current_distance;
+					start_of_launch_window = current_step * (10 * 365 / step_limit);
+				}
+			}
+
+			current_step += 1;
+		}
+
+		pop_up("Trajectory results:" + std::to_string(start_of_launch_window) + " days+, " + std::to_string(minimum_interplanetary_distance / AU) + " AU");
+
+
+		//compute non-freezing planets
+
+
+		return "";
+	}
+	catch (...)
+	{
+		pop_up("Error in computing rocket trajectories! Retry");
+		return "";
+	}
 }

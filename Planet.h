@@ -66,8 +66,8 @@ public:
 	std::string toStringPlanet(long double earth_mass)
 	{
 		std::string s;
-		s += name + ":\n";
-		s += "Diameter---" + std::to_string(diameter) + " km\n";
+		s += name + ":";
+		s += "Diameter---" + std::to_string(diameter) + " km, ";
 		if (name == "Earth")
 		{
 			s += "Mass---" + QString::number(mass, 'E', 6).toStdString() + " kg";
@@ -82,8 +82,8 @@ public:
 	std::string toStringSolarSystem(long double AU)
 	{
 		std::string s;
-		s += name + ":\n";
-		s += "Period---" + std::to_string(period) + " days\n";
+		s += name + ":";
+		s += "Period---" + std::to_string(period) + " days, ";
 		s += "Orbital radius---" + std::to_string(orbital_radius / AU) + " AU";
 		return s;
 	}
