@@ -15,6 +15,8 @@ RocketSim::RocketSim(QWidget *parent)
 {
     ui.setupUi(this);
 
+    this->resize(1040, 750);
+
     positions_window = nullptr;
     trajectory_window = nullptr;
 
