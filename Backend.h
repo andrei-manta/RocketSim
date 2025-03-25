@@ -20,7 +20,7 @@ class Backend : public QObject
 	//planetary periods - days positive real number
 	//planetary orbital radii - km positive real number
 
-private:
+public:
 	std::vector<Planet> planets;
 	int number_of_engines;
 	long double acceleration_per_engine;
@@ -33,7 +33,6 @@ private:
 	bool default_rocket = true;
 	bool default_solar_system = true;
 
-public:
 	Backend();
 
 	void pop_up(std::string s);
@@ -43,10 +42,8 @@ public:
 	int load_solar_system_data();
 
 	std::string get_rocket_data();
-	std::string get_planetary_data();
-	std::string get_solar_system_data();
 
-	std::string get_planetary_computations();
-	std::string get_positions_after_time(std::string time);
-	std::string get_trajectories(std::string planet_1, std::string planet_2);
+	std::pair<std::string, std::vector<long double>> get_positions_after_time(std::string time);
+	std::pair<std::vector<std::string>, std::vector<long double>> get_trajectories(std::string planet_1, std::string planet_2, QWidget* parent);
+	std::string seconds_to_days(long double seconds);
 };

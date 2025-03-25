@@ -66,15 +66,29 @@ public:
 	std::string toStringPlanet(long double earth_mass)
 	{
 		std::string s;
-		s += name + ":";
-		s += "Diameter---" + std::to_string(diameter) + " km, ";
+		s += name + ": ";
+		s += "Diameter --- " + std::to_string(diameter);
+		int pos = s.size() - 1;
+		while (s.at(pos) == '0')
+		{
+			s.erase(pos, std::string::npos);
+			pos -= 1;
+		}
+		s += "0 km, ";
 		if (name == "Earth")
 		{
-			s += "Mass---" + QString::number(mass, 'E', 6).toStdString() + " kg";
+			s += "Mass --- " + QString::number(mass, 'E', 2).toStdString() + " kg";
 		}
 		else
 		{
-			s += "Mass---" + std::to_string(mass / earth_mass) + " Earths";
+			s += "Mass --- " + std::to_string(mass / earth_mass);
+			pos = s.size() - 1;
+			while (s.at(pos) == '0')
+			{
+				s.erase(pos, std::string::npos);
+				pos -= 1;
+			}
+			s += "0 Earths";
 		}
 		return s;
 	}
@@ -82,9 +96,23 @@ public:
 	std::string toStringSolarSystem(long double AU)
 	{
 		std::string s;
-		s += name + ":";
-		s += "Period---" + std::to_string(period) + " days, ";
-		s += "Orbital radius---" + std::to_string(orbital_radius / AU) + " AU";
+		s += name + ": ";
+		s += "Period --- " + std::to_string(period);
+		int pos = s.size() - 1;
+		while (s.at(pos) == '0')
+		{
+			s.erase(pos, std::string::npos);
+			pos -= 1;
+		}
+		s += "0 days, ";
+		s += "Orbital radius --- " + std::to_string(orbital_radius / AU);
+		pos = s.size() - 1;
+		while (s.at(pos) == '0')
+		{
+			s.erase(pos, std::string::npos);
+			pos -= 1;
+		}
+		s += "0 AU";
 		return s;
 	}
 };

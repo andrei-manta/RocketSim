@@ -4,6 +4,8 @@
 #include <QMessageBox>
 #include <QFile>
 #include <cmath>
+#include <QGridLayout>
+#include <QLabel>
 
 Backend::Backend()
 {
@@ -262,7 +264,7 @@ int Backend::load_rocket_data()
 			this->number_of_engines = output_1;
 			this->acceleration_per_engine = output_2;
 
-			pop_up("New rocket data loaded successfully! Number of engines---" + std::to_string(output_1) + ",\nacceleration per engine---" + std::to_string(output_2) + " m/s^2");
+			pop_up("New rocket data loaded successfully!");
 
 			this->default_rocket = false;
 			file_descriptor.close();
@@ -899,17 +901,7 @@ int Backend::load_planetary_data()
 			this->planets.at(8).set_mass(numbers.at(7).second * earth_mass);
 
 			std::string p;
-			p += "Successfully loaded new planetary data!\n";
-			p += "Mercury---diameter " + std::to_string(numbers.at(0).first) + " km, mass " + std::to_string(numbers.at(0).second) + " Earths\n";
-			p += "Venus---diameter " + std::to_string(numbers.at(1).first) + " km, mass " + std::to_string(numbers.at(1).second) + " Earths\n";
-			p += "Earth---diameter " + std::to_string(earth_numbers.first) + " km, mass " + std::to_string(earth_numbers.second) + " * 10^" + std::to_string(earth_mass_power) + " kg\n";
-			p += "Mars---diameter " + std::to_string(numbers.at(2).first) + " km, mass " + std::to_string(numbers.at(2).second) + " Earths\n";
-			p += "Jupiter---diameter " + std::to_string(numbers.at(3).first) + " km, mass " + std::to_string(numbers.at(3).second) + " Earths\n";
-			p += "Saturn---diameter " + std::to_string(numbers.at(4).first) + " km, mass " + std::to_string(numbers.at(4).second) + " Earths\n";
-			p += "Uranus---diameter " + std::to_string(numbers.at(5).first) + " km, mass " + std::to_string(numbers.at(5).second) + " Earths\n";
-			p += "Neptune---diameter " + std::to_string(numbers.at(6).first) + " km, mass " + std::to_string(numbers.at(6).second) + " Earths\n";
-			p += "Pluto---diameter " + std::to_string(numbers.at(7).first) + " km, mass " + std::to_string(numbers.at(7).second) + " Earths";
-
+			p += "Successfully loaded new planetary data!";
 			pop_up(p);
 
 			this->default_planets = false;
@@ -1288,15 +1280,6 @@ int Backend::load_solar_system_data()
 
 			std::string p;
 			p += "Successfully loaded new Solar System data!\n";
-			p += "Mercury---period " + std::to_string(numbers.at(0).first) + " days, orbital period " + std::to_string(numbers.at(0).second) + " AU\n";
-			p += "Venus---period " + std::to_string(numbers.at(1).first) + " days, orbital period " + std::to_string(numbers.at(1).second) + " AU\n";
-			p += "Earth---period " + std::to_string(numbers.at(2).first) + " days, orbital period " + std::to_string(numbers.at(2).second) + " AU\n";
-			p += "Mars---period " + std::to_string(numbers.at(3).first) + " days, orbital period " + std::to_string(numbers.at(3).second) + " AU\n";
-			p += "Jupiter---period " + std::to_string(numbers.at(4).first) + " days, orbital period " + std::to_string(numbers.at(4).second) + " AU\n";
-			p += "Saturn---period " + std::to_string(numbers.at(5).first) + " days, orbital period " + std::to_string(numbers.at(5).second) + " AU\n";
-			p += "Uranus---period " + std::to_string(numbers.at(6).first) + " days, orbital period " + std::to_string(numbers.at(6).second) + " AU\n";
-			p += "Neptune---period " + std::to_string(numbers.at(7).first) + " days, orbital period " + std::to_string(numbers.at(7).second) + " AU\n";
-			p += "Pluto---period " + std::to_string(numbers.at(8).first) + " days, orbital period " + std::to_string(numbers.at(8).second) + " AU";
 
 			pop_up(p);
 
@@ -1328,70 +1311,24 @@ void Backend::pop_up(std::string s)
 std::string Backend::get_rocket_data()
 {
 	std::string s;
-	s += "---ROCKET DATA---\n";
+	s += "--- ROCKET DATA ---\n";
 	if (default_rocket)
 	{
 		s += "Caution! This data is the application default,\nyou might want to load your own data\n";
 	}
-	s += "Number of engines---" + std::to_string(number_of_engines) + "\n";
-	s += "Acceleration per engine---" + std::to_string(acceleration_per_engine) + " m/s^2\n";
+	s += "Number of engines --- " + std::to_string(number_of_engines) + "\n";
+	s += "Acceleration per engine --- " + std::to_string(acceleration_per_engine);
+	int pos = s.size() - 1;
+	while (s.at(pos) == '0')
+	{
+		s.erase(pos, std::string::npos);
+		pos -= 1;
+	}
+	s += "0 m/s^2";
 	return s;
 }
 
-std::string Backend::get_planetary_data()
-{
-	std::string s;
-	s += "---PLANETARY DATA---\n";
-	if (default_planets)
-	{
-		s += "Caution! This data is the application default,\nyou might want to load your own data\n";
-	}
-	for (auto each : planets)
-	{
-		s += each.toStringPlanet(earth_mass) + "\n";
-	}
-	return s;
-}
-
-std::string Backend::get_solar_system_data()
-{
-	std::string s;
-	s += "---SOLAR SYSTEM DATA---\n";
-	s += "1 AU = " + std::to_string(AU) + "km\n";
-	if (default_solar_system)
-	{
-		s += "Caution! This data is the application default,\nyou might want to load your own data\n";
-	}
-	for (auto each : planets)
-	{
-		s += each.toStringSolarSystem(AU) + "\n";
-	}
-	return s;
-}
-
-std::string Backend::get_planetary_computations()
-{
-	std::string s;
-	s += "PLANETARY ESCAPE VELOCITIES---";
-	for (Planet each : planets)
-	{
-		s += each.get_name() + ": " + std::to_string(sqrt(static_cast<long double>(2 * G * each.get_mass() / (each.get_diameter() * 500))) / 1000) + " km/s; ";
-	}
-	s += "\nPLANETARY ESCAPE TIMES---";
-	for (Planet each : planets)
-	{
-		s += each.get_name() + ": " + std::to_string(static_cast<long double>(sqrt(static_cast<long double>(2 * G * each.get_mass() / (each.get_diameter() * 500))) / (number_of_engines * acceleration_per_engine))) + " s; ";
-	}
-	s += "\nPLANETARY ESCAPE DISTANCES---";
-	for (Planet each : planets)
-	{
-		long double time = static_cast<long double>(sqrt(static_cast<long double>(2 * G * each.get_mass() / (each.get_diameter() * 500))) / (number_of_engines * acceleration_per_engine));
-		s += each.get_name() + ": " + std::to_string(static_cast<long double>(acceleration_per_engine * number_of_engines * time * time / 2000)) + " km; ";
-	}
-	return s;
-}
-
-std::string Backend::get_positions_after_time(std::string time)
+std::pair<std::string, std::vector<long double>> Backend::get_positions_after_time(std::string time)
 {
 	try
 	{
@@ -1399,8 +1336,8 @@ std::string Backend::get_positions_after_time(std::string time)
 
 		if (s.size() == 0)
 		{
-			pop_up("Error! You typed the number of days wrong, retry");
-			return "";
+			pop_up("Error! You must type a number of days");
+			return std::make_pair("", std::vector<long double>());
 		}
 
 		bool dot_found = false;
@@ -1413,21 +1350,21 @@ std::string Backend::get_positions_after_time(std::string time)
 				if (dot_found)
 				{
 					pop_up("Error in the number of days you typed!");
-					return "";
+					return std::make_pair("", std::vector<long double>());
 				}
 				else
 				{
 					if (each != '.')
 					{
 						pop_up("Error in the number of days you typed!");
-						return "";
+						return std::make_pair("", std::vector<long double>());
 					}
 					else
 					{
 						if (counter == 0 || counter == s.size() - 1)
 						{
 							pop_up("Error in the number of days you typed!");
-							return "";
+							return std::make_pair("", std::vector<long double>());
 						}
 						else
 						{
@@ -1442,16 +1379,18 @@ std::string Backend::get_positions_after_time(std::string time)
 		if (s.at(0) == '0' && dot_pos != 1)
 		{
 			pop_up("Error in the number of days you typed! It starts with a 0 or is just a 0");
-			return "";
+			return std::make_pair("", std::vector<long double>());
 		}
 		if (s.size() >= 8 && !dot_found)
 		{
-			pop_up("The number of days you typed is too large!");
-			return "";
+			pop_up("The number of days you typed is too large!(maximum 9 999 999)");
+			return std::make_pair("", std::vector<long double>());
 		}
 
 		long double output = 0;
 		int sum = 0;
+		std::vector<long double> angles_res;
+
 		for (auto each : s)
 		{
 			if (each == '.')
@@ -1477,27 +1416,43 @@ std::string Backend::get_positions_after_time(std::string time)
 			}
 			output += st.toDouble();
 		}
-
-		std::string res = "After " + std::to_string(output) + " days, the Solar System looks like this:\n";
+		
+		std::string res = "After " + std::to_string(output);
+		int pos = res.size() - 1;
+		while (res.at(pos) == '0')
+		{
+			res.erase(pos, std::string::npos);
+			pos -= 1;
+		}
+		res += +"0 days, the Solar System looks like this:\n";
 
 		for (Planet each : planets)
 		{
 			long double degs_per_day = static_cast<long double>(360.0) / each.get_period();
 			long double degs_traveled = fmod((output * degs_per_day), 360.0);
 
-			res += each.get_name() + ": " + std::to_string(degs_traveled) + " degrees; ";
+			angles_res.push_back(degs_traveled);
+
+			res += each.get_name() + ": " + std::to_string(degs_traveled);
+			int pos = res.size() - 5;
+			res.erase(pos, std::string::npos);
+			res += " degrees; ";
+			if (each.get_name() == "Mars")
+			{
+				res += '\n';
+			}
 		}
 
-		return res;
+		return std::make_pair(res, angles_res);
 	}
 	catch (...)
 	{
 		pop_up("Error in computing planet positions! Retry");
-		return "";
+		return std::make_pair("", std::vector<long double>());
 	}
 }
 
-std::string Backend::get_trajectories(std::string planet_1, std::string planet_2)
+std::pair<std::vector<std::string>, std::vector<long double>> Backend::get_trajectories(std::string planet_1, std::string planet_2, QWidget* parent)
 {
 	try
 	{
@@ -1512,36 +1467,60 @@ std::string Backend::get_trajectories(std::string planet_1, std::string planet_2
 			{
 				p1_counter = counter;
 			}
-			else if (each.get_name() == p2)
+			if (each.get_name() == p2)
 			{
 				p2_counter = counter;
 			}
 			counter += 1;
 		}
+		if (p1 == "" || p2 == "")
+		{
+			pop_up("Error! You must type one planet in each field");
+			return std::pair<std::vector<std::string>, std::vector<long double>>();
+		}
+		if (p1_counter == p2_counter)
+		{
+			pop_up("Error! You typed the same planet twice");
+			return std::pair<std::vector<std::string>, std::vector<long double>>();
+		}
 		if (p1_counter == -1 || p2_counter == -1)
 		{
 			pop_up("Error! You typed the planets wrong, retry");
-			return "";
+			return std::pair<std::vector<std::string>, std::vector<long double>>();
 		}
+		
+		QDialog* wait_for_computations = new QDialog(parent);
+		wait_for_computations->setWindowModality(Qt::ApplicationModal);
+		wait_for_computations->setFixedSize(180, 20);
+		wait_for_computations->setWindowTitle("Computing...");
+		wait_for_computations->show();
 
 		//do the straight line computations
-		long double p1_escape_vel = sqrt(2 * G * planets.at(p1_counter).get_mass() / (planets.at(p1_counter).get_diameter() * 500));
-		long double p2_escape_vel = sqrt(2 * G * planets.at(p2_counter).get_mass() / (planets.at(p2_counter).get_diameter() * 500));
+		long double p1_escape_vel = sqrt(2 * G * planets.at(p1_counter).get_mass() / (planets.at(p1_counter).get_diameter() * 500)); //in m/s
+		long double p2_escape_vel = sqrt(2 * G * planets.at(p2_counter).get_mass() / (planets.at(p2_counter).get_diameter() * 500)); //in m/s
 		long double max_speed = p1_escape_vel > p2_escape_vel ? p1_escape_vel : p2_escape_vel; // in m/s
 		long double total_acceleration = acceleration_per_engine * number_of_engines; // in m/s^2
 		long double straight_distance = (abs(planets.at(p1_counter).get_orbital_radius() - planets.at(p2_counter).get_orbital_radius()) - planets.at(p1_counter).get_diameter() / 2 - planets.at(p2_counter).get_diameter() / 2) * 1000; //in m
 
-		long double time_of_acceleration = max_speed / total_acceleration;
-		long double distance_of_acceleration = total_acceleration * time_of_acceleration * time_of_acceleration / 2.0;
-		long double cruising_time = (straight_distance - 2.0 * distance_of_acceleration) / max_speed;
-		long double journey_time = cruising_time + 2 * time_of_acceleration;
+		long double time_of_acceleration = max_speed / total_acceleration; //in s
+		long double distance_of_acceleration = total_acceleration * time_of_acceleration * time_of_acceleration / 2.0; //in m
+		long double cruising_time = (straight_distance - 2.0 * distance_of_acceleration) / max_speed; //in s
+		long double journey_time = cruising_time + 2 * time_of_acceleration; //in s
 
-		std::string ret = "Total stright-line journey time:" + std::to_string(journey_time) + " s, time of acceleration:" + std::to_string(time_of_acceleration) +
-			" s,\ndistance of acceleration:" + std::to_string(distance_of_acceleration) + " m, cruising time:" + std::to_string(cruising_time) + " s";
+		std::vector<std::string> ret = std::vector<std::string>();
+		ret.push_back(seconds_to_days(journey_time));
+		int pos;
+		ret.push_back(std::to_string(time_of_acceleration));
+		pos = ret.at(1).size() - 5;
+		ret.at(1).erase(pos, std::string::npos);
+		ret.at(1) += " s";
+		ret.push_back(std::to_string(distance_of_acceleration / 1000));
+		pos = ret.at(2).size() - 5;
+		ret.at(2).erase(pos, std::string::npos);
+		ret.at(2) += " km";
+		ret.push_back(seconds_to_days(cruising_time));
 
-		pop_up(ret);
-
-		//do the frozen planets computations
+		//do the moving planets computations
 		std::vector<long double> planet_positions; //in degrees
 		for (auto each : planets)
 		{
@@ -1559,14 +1538,26 @@ std::string Backend::get_trajectories(std::string planet_1, std::string planet_2
 		int current_step = 0;
 
 		long double start_of_launch_window = 0.0;
-		long double minimum_interplanetary_distance = 900000000000.0;
+		long double minimum_interplanetary_distance = 900000000000.0; //in km
 		long double current_distance = 0.0;
 
-		std::vector<std::pair<long double, long double>> orthogonal_positions; //x and y orthogonal positions of the planets
+		std::vector<std::pair<long double, long double>> orthogonal_positions; //x and y orthogonal positions of the planets in km
 		for (int i = 0; i < 9; ++i)
 		{
 			orthogonal_positions.push_back(std::make_pair(0.0, 0.0));
 		}
+
+		std::pair<int, int> ret_planet_counters;
+		ret_planet_counters.first = p1_counter;
+		ret_planet_counters.second = p2_counter;
+		std::vector<long double> ret_polar_planet_positions;
+		for (int i = 0; i < 9; ++i)
+		{
+			ret_polar_planet_positions.push_back(0.0);
+		}
+		long double ret_total_journey_time; //in s
+		long double ret_cruising_journey_time; //in s
+
 		while (current_step < step_limit)
 		{
 			//progress the system by one step
@@ -1582,52 +1573,134 @@ std::string Backend::get_trajectories(std::string planet_1, std::string planet_2
 			counter = 0;
 			while (counter < 9)
 			{
-				orthogonal_positions.at(counter) = std::make_pair(planets.at(counter).get_orbital_radius() * cos(planet_positions.at(counter) * M_PI / 180.0), planets.at(counter).get_orbital_radius() * sin(planet_positions.at(counter) * M_PI / 180.0));
+				orthogonal_positions.at(counter) = std::make_pair(planets.at(counter).get_orbital_radius() * cos(planet_positions.at(counter) * M_PI / 180.0), planets.at(counter).get_orbital_radius() * sin(planet_positions.at(counter) * M_PI / 180.0)); //in km
 
 				counter += 1;
 			}
 			//check smashing into planets and compare with current shortest distance
-			current_distance = hypot(abs(orthogonal_positions.at(p1_counter).first - orthogonal_positions.at(p2_counter).first), abs(orthogonal_positions.at(p1_counter).second - orthogonal_positions.at(p2_counter).second));
+			bool smashes = false;
+
+			long double p1_x = orthogonal_positions.at(p1_counter).first; //in km
+			long double p1_y = orthogonal_positions.at(p1_counter).second; //in km
+			long double p2_x = orthogonal_positions.at(p2_counter).first; //in km
+			long double p2_y = orthogonal_positions.at(p2_counter).second; //in km
+
+			current_distance = hypot(abs(p1_x - p2_x), abs(p1_y - p2_y)); //in km
+			std::pair<long double, long double> current_global_position; //in km
+			long double current_travel_time; //in s
+			long double dynamic_journey_distance = (current_distance - planets.at(p1_counter).get_diameter() / 2 - planets.at(p2_counter).get_diameter() / 2); //in km
+			long double dynamic_journey_time = (dynamic_journey_distance * 1000.0 - 2 * distance_of_acceleration) / max_speed; //in s
+			long double journey_angle = atan2(p1_y - p2_y, p1_x - p2_x); //in radians
+
+			long double other_x; //in km
+			long double other_y; //in km
 			
+			//check smashing
 			if (current_distance < minimum_interplanetary_distance)
 			{
-				bool smashes = false;
+				//static smashing
 				int counter = 0;
-				long double distance_center_of_planet_to_line = 0.0;
-				for (auto each : orthogonal_positions)
+				long double distance_center_of_planet_to_line = 0.0; //in km
+				for (auto each : orthogonal_positions)//in km
 				{
 					if (counter != p1_counter && counter != p2_counter)
 					{
 						//compute smashing - formula for distance from point to line
-						distance_center_of_planet_to_line = abs((orthogonal_positions.at(p1_counter).second - orthogonal_positions.at(p2_counter).second) * each.first - (orthogonal_positions.at(p1_counter).first - orthogonal_positions.at(p2_counter).first) * each.second + orthogonal_positions.at(p2_counter).first * orthogonal_positions.at(p1_counter).second - orthogonal_positions.at(p1_counter).first * orthogonal_positions.at(p2_counter).second) / current_distance;
-						if (distance_center_of_planet_to_line <= planets.at(counter).get_diameter() / 2) //no smash detected
+						distance_center_of_planet_to_line = abs((p1_y - p2_y) * each.first - (p1_x - p2_x) * each.second + p2_x * p1_y - p1_x * p2_y) / current_distance; //in km
+						if (distance_center_of_planet_to_line <= planets.at(counter).get_diameter() / 2) //no smash detected, in km
 						{
 							smashes = true;
 						}
 					}
 					counter += 1;
 				}
+				
+				//check dynamic smashing into planets numerically
+				current_travel_time = time_of_acceleration; //in s
+				current_global_position.first = p1_x + (distance_of_acceleration / 1000.0 + planets.at(p1_counter).get_diameter() / 2) * cos(journey_angle);//in km
+				current_global_position.second = p1_y + (distance_of_acceleration / 1000.0 + planets.at(p1_counter).get_diameter() / 2) * sin(journey_angle);//in km
+
+				while (current_travel_time < (dynamic_journey_time - 60 * 60 * 24))
+				{
+					current_global_position.first += cos(journey_angle) * max_speed * 60 * 60 * 24 / 1000.0; //in km/day
+					current_global_position.second += sin(journey_angle) * max_speed * 60 * 60 * 24 / 1000.0; //in km/day
+
+					//compare rocket position to positions of planets at this time
+					int counter = 0;
+					for (auto& each : planet_positions)
+					{
+						if (counter != p1_counter && counter != p2_counter)
+						{
+							//check linear distance to planet
+							other_x = cos(fmod(each + 360.0 / planets.at(counter).get_period() * (dynamic_journey_time / (60 * 60 * 24)), 360.0)) * planets.at(counter).get_orbital_radius(); //in km
+							other_y = sin(fmod(each + 360.0 / planets.at(counter).get_period() * (dynamic_journey_time / (60 * 60 * 24)), 360.0)) * planets.at(counter).get_orbital_radius(); //in km
+						
+							if (hypot(abs(other_x - current_global_position.first), abs(other_y - current_global_position.second)) < planets.at(counter).get_diameter() / 2 * 10) //safe margin of 10 planetary radii in km
+							{
+								smashes = true;
+								break;
+							}
+						}
+						counter += 1;
+					}
+					if (smashes)
+					{
+						break;
+					}
+
+					current_travel_time += 60 * 60 * 24; //add a days' worth of seconds
+				}
+
+				//update if no smash
 				if (!smashes)
 				{
 					minimum_interplanetary_distance = current_distance;
 					start_of_launch_window = current_step * (10 * 365 / step_limit);
+					for (int i = 0; i < 9; ++i)
+					{
+						ret_polar_planet_positions.at(i) = planet_positions.at(i);
+					}
+					ret_cruising_journey_time = dynamic_journey_time;
+					ret_total_journey_time = dynamic_journey_time + 2 * time_of_acceleration;
 				}
 			}
 
 			current_step += 1;
 		}
 
-		pop_up("Trajectory results:" + std::to_string(start_of_launch_window) + " days+, " + std::to_string(minimum_interplanetary_distance / AU) + " AU");
+		std::string temp = std::to_string(start_of_launch_window);
+		int temp_pos = temp.size() - 5;
+		temp.erase(temp_pos, std::string::npos);
+		ret.push_back(temp + " days");
+		ret.push_back(std::to_string(start_of_launch_window));
+		ret.push_back(std::to_string(time_of_acceleration) + " s");
+		temp = std::to_string(distance_of_acceleration / 1000.0);
+		temp_pos = temp.size() - 5;
+		temp.erase(temp_pos, std::string::npos);
+		ret.push_back(temp + " km");
+		ret.push_back(seconds_to_days(ret_cruising_journey_time));
+		ret.push_back(seconds_to_days(ret_total_journey_time));
 
+		ret_polar_planet_positions.push_back(ret_planet_counters.first);
+		ret_polar_planet_positions.push_back(ret_planet_counters.second);
 
-		//compute non-freezing planets
+		wait_for_computations->close();
 
-
-		return "";
+		return std::make_pair(ret, ret_polar_planet_positions);
 	}
 	catch (...)
 	{
 		pop_up("Error in computing rocket trajectories! Retry");
-		return "";
+		return std::pair<std::vector<std::string>, std::vector<long double>>();
 	}
+}
+
+std::string Backend::seconds_to_days(long double seconds)
+{
+	unsigned long long to_int = static_cast<unsigned long long>(seconds);
+	unsigned int days = to_int / (60 * 60 * 24);
+	to_int -= days * (60 * 60 * 24);
+	unsigned int hours = to_int / (60 * 60);
+	to_int -= hours * 60 * 60;
+	return std::to_string(days) + " d, " + std::to_string(hours) + " h, " + std::to_string(to_int) + " s";
 }
